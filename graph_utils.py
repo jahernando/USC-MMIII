@@ -13,30 +13,38 @@ from mpl_toolkits.mplot3d import Axes3D
 matplotlib.style.use('ggplot')
 
 figsize = 5, 3.8
-figsize = 7, 4.4
+#figsize = 7, 4.4
 figsize = 8, 6
 cmap    = 'hot'
 
-def fun1d(fun, x0 = 0., length = 3., newfig = True):
-    xs   = np.linspace(x0 - length, x0 + length, 100)
+xrange = (-3., 3., 100)
+trange = ( 0., 1., 100)
+
+def fun1d(fun, xrange = xrange, newfig = True):
+    """ draw a 1d function
+    parameters:
+        fun   : (function)     real function
+        xrange: (float, float, int) (a, b, nbins) partition of the interval (a, b) in nbins
+    """
+    xs   = np.linspace(*xrange)
     fig = plt.figure() if newfig else plt.gcf(); ax = plt.gca()
     ax.plot(xs, fun(xs))
     ax.set_xlabel('$x$'); ax.set_ylabel('f(x)')
     return fig, ax
 
 
-def graph(fun, x0 = 0., y0 = 0., length = 3., zlim = None, newfig = True):
+def graph(fun, xrange = xrange, yrange = xrange, zlim = None, newfig = True):
     """ draws a funcion
     parameters:
-        fun    : (function) x,y function to draw
-        x0, y0 : (float)    values of the center of the function
-        length : (float)    length of the x, y axis
+        fun    : (function)    x,y function to draw
+        xrange : (a, b, nbins) x-partition of the interval (a, b) in nbins
+        yrange : (a, b, nbins) y-partition of the interval (a, b) in nbins
         zlim   : (float, float) zlimits
         newfig : (bool)     False is use existing figure
     returns:
     """
-    xs  = np.linspace(x0 - length, x0 + length, 100)
-    ys  = np.linspace(y0 - length, y0 + length, 100)
+    xs  = np.linspace(*xrange)
+    ys  = np.linspace(*yrange)
     xms, yms = np.meshgrid(xs, ys)
     zms = fun(xms, yms)
     if (zlim is not None):
@@ -52,9 +60,10 @@ def graph(fun, x0 = 0., y0 = 0., length = 3., zlim = None, newfig = True):
     return fig, ax
 
 
-def contour(fun, contours=20, length = 3., zlim = None, fill = True, newfig = True):
-    xs  = np.linspace(-1.*length, length, 100)
-    ys  = np.linspace(-1.*length, length, 100)
+def contour(fun, xrange = xrange , yrange = xrange, contours=20,
+            zlim = None, fill = True, newfig = True):
+    xs  = np.linspace(*xrange)
+    ys  = np.linspace(*yrange)
     xms, yms = np.meshgrid(xs, ys)
     zms = fun(xms, yms)
     if (zlim is not None):
@@ -71,21 +80,37 @@ def contour(fun, contours=20, length = 3., zlim = None, fill = True, newfig = Tr
     return fig, ax
     return
 
+def dot(x0, y0, color = 'black'):
+    ax = plt.gca()
+    ax.plot(x0, y0, color= color, marker='*')
+    return
 
-def arrow(x0, y0, vx, vy, head = 0.3):
+def arrow(x0, y0, vx, vy, head = 0.3, color = 'black'):
     ax = plt.gca()
     vv = np.sqrt(vx*vx + vy*vy)
     if (vv == 0.):
-        ax.plot(x0, y0, color='black', marker='*')
+        ax.plot(x0, y0, color = color, marker='*')
     else:
         vx, vy = (1-head)*vx, (1-head)*vy
-        ax.arrow(x0, y0, vx, vy, head_width=head, head_length=head, fc='k',
-                color='black', lw=2)
+        ax.arrow(x0, y0, vx, vy, head_width=head, head_length=head,
+                color = color, lw=2)
     return ax
 
-def graph_section(fun, x0, y0, vx, vy, length = 3., sign = +1.):
-    xs  = np.linspace(-1.*length, length, 100)
-    ys  = np.linspace(-1.*length, length, 100)
+
+def arrow3d(x0, y0, z0, vx, vy, vz, color = 'black', head = 0.3):
+    ax = plt.gca(projection='3d')
+    vv = np.sqrt(vx*vx + vy*vy + vz*vz)
+    if (vv == 0.):
+        ax.plot(x0, y0, z0, color='black', marker='*')
+    else:
+        vx, vy, vz = (1-head)*vx, (1-head)*vy, (1-head)*vz
+        ax.quiver(x0, y0, z0, vx, vy, vz, color = color, lw=2)
+    return ax
+
+
+def graph_section(fun, x0, y0, vx, vy, xrange = xrange, yrange = xrange, sign = +1.):
+    xs  = np.linspace(*xrange)
+    ys  = np.linspace(*yrange)
     xms, yms = np.meshgrid(xs, ys)
     zms = fun(xms, yms)
     dvx, dvy = xms - x0, yms - y0
@@ -94,7 +119,7 @@ def graph_section(fun, x0, y0, vx, vy, length = 3., sign = +1.):
     zms[sign*dd >= 0.] = zmin
     fig = plt.figure(figsize=(8, 3.8))
     ax = fig.add_subplot(1, 2, 1, projection='3d')
-    sf = ax.plot_surface(xms, yms, zms, cmap=cmap)
+    sf = ax.plot_surface(xms, yms, zms, cmap = cmap)
     ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
     fig.colorbar(sf)
     ax = plt.subplot(1, 2, 2)
@@ -110,17 +135,18 @@ def graph_section(fun, x0, y0, vx, vy, length = 3., sign = +1.):
     return
 
 
-def line2d(funx, funy, length = 1., newfig = True):
-    ts = np.linspace(0., length, 100)
+def line2d(funx, funy, trange = trange, color = 'blue', newfig = True):
+    ts = np.linspace(*trange)
     xs, ys = funx(ts), funy(ts)
     fig = plt.figure(figsize = figsize) if newfig else plt.gcf()
     ax  = plt.gca()
-    ax.plot(xs, ys)
+    ax.plot(xs, ys, color = color)
     ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
     return fig, ax
 
-def line3d(trange, funx, funy, funz, color = 'blue', newfig = True):
-    ts = np.linspace(*trange, 100)
+
+def line3d(funx, funy, funz, trange = xrange, color = 'blue', newfig = True):
+    ts = np.linspace(*trange)
     xs, ys, zs = funx(ts), funy(ts), funz(ts)
     fig = plt.figure(figsize = figsize) if newfig else plt.gcf()
     ax  = plt.gca(projection='3d')
@@ -128,9 +154,11 @@ def line3d(trange, funx, funy, funz, color = 'blue', newfig = True):
     ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
     return fig, ax
 
-def wfsurface(urange, vrange, funx, funy, funz, nbins = 20, color = 'red', newfig = True):
-    us = np.linspace(*urange, nbins)
-    vs = np.linspace(*vrange, nbins)
+
+def wfsurface(funx, funy, funz, urange = xrange, vrange = xrange,
+              color = 'red', newfig = True):
+    us = np.linspace(*urange)
+    vs = np.linspace(*vrange)
     ums, vms = np.meshgrid(us, vs)
     xms, yms, zms = funx(ums, vms), funy(ums, vms), funz(ums, vms)
     fig = plt.figure(figsize = figsize) if newfig else plt.gcf()
@@ -157,13 +185,13 @@ def sphere_plane(theta0,  phi0, length = 0.5):
         return
 
     # draw sphere
-    theta_range = 0., np.pi
-    phi_range   = 0., 2.*np.pi
+    theta_range = 0., np.pi, 20
+    phi_range   = 0., 2.*np.pi, 20
     r = 1.
     xpos = lambda theta, phi : r * np.cos(phi) * np.sin(theta)
     ypos = lambda theta, phi : r * np.sin(phi) * np.sin(theta)
     zpos = lambda theta, phi : r               * np.cos(theta)
-    fig, ax = wfsurface(theta_range, phi_range, xpos, ypos, zpos);
+    fig, ax = wfsurface(xpos, ypos, zpos, theta_range, phi_range, color='orange');
 
     # draw plane
     fpx  = lambda x, y, z: 2*x
@@ -174,9 +202,9 @@ def sphere_plane(theta0,  phi0, length = 0.5):
     xplane = lambda x, y : x
     yplane = lambda x, y : y
     zplane = lambda x, y : z0 - (fpx0 * (x-x0) + fpy0 * (y - y0))/fpz0
-    x_range = x0 - length, x0 + length
-    y_range = y0 - length, y0 + length
-    wfsurface(x_range, y_range, xplane, yplane, zplane, nbins =20, newfig = False)
+    x_range = x0 - length, x0 + length, 10
+    y_range = y0 - length, y0 + length, 10
+    wfsurface(xplane, yplane, zplane, x_range, y_range, newfig = False)
 
     # draw gradient
     arrow3d(x0, y0, z0, fpx0, fpy0, fpz0)
@@ -193,18 +221,22 @@ def sphere_plane(theta0,  phi0, length = 0.5):
     xu = lambda phi : xpos(theta0, phi)
     yu = lambda phi : ypos(theta0, phi)
     zu = lambda phi : zpos(theta0, phi)
-    line3d(phi_range, xu, yu, zu, newfig = False)
+    line3d(xu, yu, zu, phi_range, newfig = False)
 
-    xvelo, yvelo, zvelo = xpphi(theta0, phi0), ypphi(theta0, phi0), zpphi(theta0, phi0)
-    arrow3d(x0, y0, z0, xvelo, yvelo, zvelo)
+    xvphi, yvphi, zvphi = xpphi(theta0, phi0), ypphi(theta0, phi0), zpphi(theta0, phi0)
+    arrow3d(x0, y0, z0, xvphi, yvphi, zvphi)
 
     # draw line
     xv = lambda theta : xpos(theta, phi0)
     yv = lambda theta : ypos(theta, phi0)
     zv = lambda theta : zpos(theta, phi0)
-    line3d(theta_range, xv, yv, zv, newfig = False)
+    line3d(xv, yv, zv, theta_range, newfig = False)
 
-    xvelo, yvelo, zvelo = xptheta(theta0, phi0), yptheta(theta0, phi0), zptheta(theta0, phi0)
-    arrow3d(x0, y0, z0, xvelo, yvelo, zvelo)
+    xvtheta, yvtheta, zvtheta = xptheta(theta0, phi0), yptheta(theta0, phi0), zptheta(theta0, phi0)
+    arrow3d(x0, y0, z0, xvtheta, yvtheta, zvtheta)
 
-    return fig, ax
+    grad   = (fpx0 ,      fpy0, fpz0)
+    vphi   = (xvphi,     yvphi, zvphi)
+    vtheta = (xvtheta, yvtheta, zvtheta)
+
+    return fig, ax, grad, vphi, vtheta
