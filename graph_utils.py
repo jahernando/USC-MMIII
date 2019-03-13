@@ -33,7 +33,25 @@ def fun1d(fun, xrange = xrange, newfig = True):
     return fig, ax
 
 
-def graph(fun, xrange = xrange, yrange = xrange, zlim = None, newfig = True):
+def meshgrid(xrange, yrange):
+    xs  = np.linspace(*xrange)
+    ys  = np.linspace(*yrange)
+    xms, yms = np.meshgrid(xs, ys)
+    return xms, yms
+
+def zfun(fun, xms, yms, condition = None, zlim = None, zzero = 0.):
+    zms = fun(xms, yms)
+    if (condition is not None):
+        mask = condition(xms, yms)
+        zms[~mask] = zzero
+    if (zlim is not None):
+        zmin, zmax = zlim
+        zms[ zms < zmin] = zmin
+        zms[ zms > zmax] = zmax
+    return zms
+
+def graph(fun, xrange = xrange, yrange = xrange, condition = None,
+          zlim = None, newfig = True):
     """ draws a funcion
     parameters:
         fun    : (function)    x,y function to draw
@@ -43,14 +61,8 @@ def graph(fun, xrange = xrange, yrange = xrange, zlim = None, newfig = True):
         newfig : (bool)     False is use existing figure
     returns:
     """
-    xs  = np.linspace(*xrange)
-    ys  = np.linspace(*yrange)
-    xms, yms = np.meshgrid(xs, ys)
-    zms = fun(xms, yms)
-    if (zlim is not None):
-        zmin, zmax = zlim
-        zms[ zms < zmin] = zmin
-        zms[ zms > zmax] = zmax
+    xms, yms = meshgrid(xrange, yrange)
+    zms      = zfun(fun, xms, yms, condition, zlim)
     fig = plt.figure(figsize=figsize) if newfig else plt.gcf()
     ax = plt.gca(projection='3d')
     sf  = ax.plot_surface(xms, yms, zms, cmap=cmap, alpha = 0.8)
@@ -60,16 +72,50 @@ def graph(fun, xrange = xrange, yrange = xrange, zlim = None, newfig = True):
     return fig, ax
 
 
-def contour(fun, xrange = xrange , yrange = xrange, contours=20,
+def riemann_sum(fun, xrange, yrange, condition = None):
+    xms, yms = meshgrid(xrange, yrange)
+    zms      = zfun(fun, xms, yms, condition)
+    norm = plt.Normalize()
+    cmap = plt.cm.jet(norm(zms.ravel()))
+
+    z0s = np.zeros_like(zms.ravel())
+    xwidth, ywidth  = xms[0][1] - xms[0][0], yms[1][0] - yms[0][0]
+    rsum = np.sum(zms) * xwidth * ywidth
+    return rsum
+
+
+def bars3d(fun, xrange = xrange, yrange = xrange, condition = None, zlim = None,
+          newfig = True, acolor = 'z'):
+
+    xms, yms = meshgrid(xrange, yrange)
+    zms      = zfun(fun, xms, yms, condition, zlim)
+    norm = plt.Normalize()
+    cmap = plt.cm.jet(norm(zms.ravel()))
+
+    z0s = np.zeros_like(zms.ravel())
+    xwidth, ywidth  = xms[0][1] - xms[0][0], yms[1][0] - yms[0][0]
+
+    fig = plt.figure(figsize = figsize) if newfig else plt.gcf()
+    ax = plt.gca(projection='3d')
+    crange  = zms
+    if (acolor == 'x'): crange = xms
+    if (acolor == 'y'): crange = yms
+    norm = plt.Normalize()
+    cmap = plt.cm.jet(norm(crange.ravel()))
+
+    ax.bar3d(xms.ravel(), yms.ravel(), z0s.ravel(), xwidth, ywidth, zms.ravel(),
+    shade=True, color = cmap)
+    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
+
+    return fig, ax
+
+
+    return fig, ax
+
+def contour(fun, xrange = xrange , yrange = xrange, contours = 20, condition = False,
             zlim = None, fill = True, newfig = True):
-    xs  = np.linspace(*xrange)
-    ys  = np.linspace(*yrange)
-    xms, yms = np.meshgrid(xs, ys)
-    zms = fun(xms, yms)
-    if (zlim is not None):
-        zmin, zmax = zlim
-        zms[ zms < zmin] = zmin
-        zms[ zms > zmax] = zmax
+    xms, yms = meshgrid(xrange, yrange)
+    zms      = zfun(fun, xms, yms, condition, zlim)
     fig = plt.figure(figsize=figsize) if newfig else plt.gcf()
     ax = plt.gca()
     if (fill):
@@ -145,7 +191,8 @@ def line2d(funx, funy, trange = trange, color = 'blue', newfig = True):
     return fig, ax
 
 
-def line3d(funx, funy, funz, trange = xrange, color = 'blue', newfig = True):
+def line3d(funx, funy, funz, trange = xrange,
+           newfig = True, color = 'blue', alpha = 0.8):
     ts = np.linspace(*trange)
     xs, ys, zs = funx(ts), funy(ts), funz(ts)
     fig = plt.figure(figsize = figsize) if newfig else plt.gcf()
@@ -156,17 +203,36 @@ def line3d(funx, funy, funz, trange = xrange, color = 'blue', newfig = True):
 
 
 def wfsurface(funx, funy, funz, urange = xrange, vrange = xrange,
-              color = 'red', newfig = True):
+              newfig = True, color = 'r', alpha = 1.):
     us = np.linspace(*urange)
     vs = np.linspace(*vrange)
     ums, vms = np.meshgrid(us, vs)
     xms, yms, zms = funx(ums, vms), funy(ums, vms), funz(ums, vms)
     fig = plt.figure(figsize = figsize) if newfig else plt.gcf()
     ax  = plt.gca(projection='3d')
-    ax.plot_wireframe(xms, yms, zms, alpha = 0.8, color = color)
+    ax.plot_wireframe(xms, yms, zms, alpha = alpha, color = color)
     ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
     return fig, ax
 
+
+def wfsurface2d(xfun, yfun, urange, vrange, newfig = False,
+                xlabel = '$x$', ylabel = '$y$', color = 'r'):
+    us = np.linspace(*urange)
+    vs = np.linspace(*vrange)
+    ums, vms = np.meshgrid(us, vs)
+    nus, nvs = ums.shape
+    xms = xfun(ums, vms)
+    yms = yfun(ums, vms)
+    fig = plt.figure(figsize = figsize) if newfig else plt.gcf()
+    ax  = plt.gca()
+    for i in range(nus):
+        ax.plot(xms[i][:], yms[i][:], color = color, alpha = 0.8)
+    xms = xms.transpose()
+    yms = yms.transpose()
+    for i in range(nvs):
+        ax.plot(xms[i][:], yms[i][:], color = color, alpha = 0.8)
+    ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); ax.set_aspect('equal')
+    return fig, ax
 
 def arrow3d(x0, y0, z0, vx, vy, vz, color = 'black', head = 0.3):
     ax = plt.gca(projection='3d')
