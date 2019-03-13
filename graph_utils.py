@@ -14,7 +14,7 @@ matplotlib.style.use('ggplot')
 
 figsize = 5, 3.8
 #figsize = 7, 4.4
-figsize = 8, 6
+#figsize = 8, 6
 cmap    = 'hot'
 
 xrange = (-3., 3., 100)
