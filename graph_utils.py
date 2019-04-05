@@ -10,11 +10,12 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.collections import PolyCollection
 matplotlib.style.use('ggplot')
 
-figsize = 5, 3.8
+#figsize = 5, 3.8
 #figsize = 7, 4.4
-#figsize = 8, 6
+figsize = 8, 6
 cmap    = 'hot'
 
 xrange = (-3., 3., 100)
@@ -112,7 +113,7 @@ def bars3d(fun, xrange = xrange, yrange = xrange, condition = None, zlim = None,
 
     return fig, ax
 
-def contour(fun, xrange = xrange , yrange = xrange, contours = 20, condition = False,
+def contour(fun, xrange = xrange , yrange = xrange, contours = 20, condition = None,
             zlim = None, fill = True, newfig = True):
     xms, yms = meshgrid(xrange, yrange)
     zms      = zfun(fun, xms, yms, condition, zlim)
@@ -126,10 +127,38 @@ def contour(fun, xrange = xrange , yrange = xrange, contours = 20, condition = F
     return fig, ax
     return
 
+def quiver2d(fx, fy, xrange = xrange, yrange = xrange, newfig = False):
+    xms, yms = meshgrid(xrange, yrange)
+    vmx      = fx(xms, yms)
+    vmy      = fy(xms, yms)
+    fig = plt.figure(figsize=figsize) if newfig else plt.gcf()
+    ax = plt.gca()
+    c0 = ax.quiver(xms, yms, vmx, vmy, alpha=0.8)
+    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
+    return fig, ax
+    return
+
 def dot(x0, y0, color = 'black'):
     ax = plt.gca()
     ax.plot(x0, y0, color= color, marker='*')
     return
+
+
+def segment( p0 , p1, color = 'black'):
+    x0, y0 = p0
+    x1, y1 = p1
+    ax = plt.gca()
+    ax.plot((x0, x1), (y0, y1), color= color, alpha = 0.5)
+    return
+
+def square( p0, xside, yside, color = 'black'):
+    x0, y0 = p0
+    segment( (x0        , y0), (x0 + xside, y0), color = color)
+    segment( (x0 + xside, y0), (x0 + xside, y0 + yside), color = color)
+    segment( (x0        , y0), (x0        , y0 + yside), color = color)
+    segment( (x0, y0 + yside), (x0 + xside, y0 + yside), color = color)
+    return
+
 
 def arrow(x0, y0, vx, vy, head = 0.3, color = 'black'):
     ax = plt.gca()
@@ -243,6 +272,70 @@ def arrow3d(x0, y0, z0, vx, vy, vz, color = 'black', head = 0.3):
         vx, vy, vz = (1-head)*vx, (1-head)*vy, (1-head)*vz
         ax.quiver(x0, y0, z0, vx, vy, vz, color = color, lw=2)
     return ax
+
+
+def int_fscalar_line(fc, cx, cy, trange = trange, newfig = False):
+    ts = np.linspace(*trange)
+    xs, ys = cx(ts), cy(ts)
+    zs     = fc(xs, ys)
+    fig = plt.figure(figsize = figsize) if newfig else plt.gcf()
+    ax  = plt.gca(projection='3d')
+    ax.plot(xs, ys, zs, color = 'r')
+    ax.plot(xs, ys, 0.*zs, color = 'black', alpha = 0.5)
+    for i in range(len(xs)):
+        ax.plot( (xs[i], xs[i]), (ys[i], ys[i]), (0., zs[i]), color = 'r', alpha = 0.5)
+#ax.view_init(azim=60.)
+    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal');
+    return
+
+def int_fvect_line(fx, fy, cx, cy, trange = trange, newfig = False,
+                   surf = True):
+    ts = np.linspace(*trange)
+    xs, ys = cx(ts), cy(ts)
+    dxs = np.array([xs[i+1] - xs[i] for i in range(len(xs)-1)])
+    dys = np.array([ys[i+1] - ys[i] for i in range(len(ys)-1)])
+    fxs = fx(xs, ys)
+    fys = fy(xs, ys)
+    vals = zip(fxs[:-1], fys[:-1], dxs, dys)
+    ds  = np.array([np.sqrt(dxi * dxi + dyi * dyi)
+                    for dxi, dyi in zip(dxs, dys)])
+    zzs = np.array([fxi * dxi + fyi * dyi for fxi, fyi, dxi, dyi in vals])
+    intval = np.sum(zzs)
+    zs  = np.array([zi/dsi for zi, dsi in zip(zzs, ds)])
+    fig = plt.figure(figsize = figsize) if newfig else plt.gcf()
+    #xs, ys = xs[:-1], ys[:-1]
+    if (surf):
+        ax  = plt.gca()
+        ax.plot(xs, ys, color = 'black', alpha = 0.5)
+        #vers = list(zip(xs, fxs))
+        #poly = PolyCollection(vers)
+        #ax.add_collection(poly)
+        #fxm = 0.5*(fxs[:-1] + fxs[1:])
+        for i in range(len(xs)-1):
+            color = 'b' if dxs[i] > 0. else 'r'
+            ifx = 0.5*(fxs[i+1] + fxs[i])
+            ax.plot( (xs[i]  , xs[i])  , (0. , ifx ), color = color, alpha = 0.4)
+            ax.plot( (xs[i+1], xs[i+1]), (0. , ifx ), color = color, alpha = 0.4)
+            ax.plot( (xs[i]  , xs[i+1]), (ifx, ifx ), color = color, alpha = 0.4)
+            color = 'b' if dys[i] > 0. else 'r'
+            ify = 0.5*(fys[i+1] + fys[i])
+            ax.plot( (0. , ify), (ys[i]  , ys[i])  , color = color, alpha = 0.4)
+            ax.plot( (0. , ify), (ys[i+1], ys[i+1]), color = color, alpha = 0.4)
+            ax.plot( (ify, ify), (ys[i]  , ys[i+1]), color = color, alpha = 0.4)
+        #ax.
+        #ax.ax.plot( (0., ify), (ys[i], ys[i]), color = color, alpha = 0.4)
+    #ax.
+        #ax.view_init(azim=60.)
+        ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal');
+    else:
+        ax  = plt.gca(projection='3d')
+        xs, ys = xs[:-1], ys[:-1]
+        ax.plot(xs, ys, zs, color = 'r')
+        ax.plot(xs, ys, 0.*zs, color = 'black', alpha = 0.5)
+        for i in range(len(xs)):
+            ax.plot( (xs[i], xs[i]), (ys[i], ys[i]), (0., zs[i]), color = 'r', alpha = 0.5)
+        ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal');
+    return intval
 
 
 def sphere_plane(theta0,  phi0, length = 0.5):
