@@ -138,6 +138,58 @@ def quiver2d(fx, fy, xrange = xrange, yrange = xrange, newfig = False):
     return fig, ax
     return
 
+
+def quiver3d(fx, fy, fz, xrange = xrange, yrange = xrange, zrange = xrange,
+              newfig = False, color = 'r'):
+    fig = plt.figure(figsize=figsize) if newfig else plt.gcf()
+    ax = fig.gca(projection='3d')
+
+    # Make the grid
+    x, y, z = np.meshgrid(np.linspace(*xrange),
+                          np.linspace(*yrange),
+                          np.linspace(*zrange))
+
+                          # Make the direction data for the arrows
+    u = fx(x, y, z)
+    v = fy(x, y, z)
+    w = fz(x, y, z)
+
+    ax.quiver(x, y, z, u, v, w,  alpha = 0.8, length = 0.3, normalize = True, color = color)
+
+    return
+
+
+def quiver3d_in_wfsurface(fx, fy, fz, sx, sy, sz, urange = xrange, vrange = xrange,
+                         newfig = False, alpha = 0.8, color = 'r'):
+    fig = plt.figure(figsize=figsize) if newfig else plt.gcf()
+    ax = fig.gca(projection='3d')
+
+    # Make the grid
+    u, v  = np.meshgrid(np.linspace(*urange), np.linspace(*vrange))
+
+    x , y ,  z = sx(u, v), sy(u, v), sz(u, v)
+    vx, vy, vz = fx(x, y, z), fy(x, y, z), fz(x, y, z)
+
+    ax.quiver(x, y, z, vx, vy, vz,  alpha = alpha, length = 0.3, normalize = True, color = color)
+
+    return
+
+
+def quiver3d_in_line3d(fx, fy, fz, cx, cy, cz, trange = xrange,
+                         newfig = False, alpha = 0.8, color = 'r'):
+    fig = plt.figure(figsize=figsize) if newfig else plt.gcf()
+    ax = fig.gca(projection='3d')
+
+    # Make the grid
+    t = np.linspace(*trange)
+
+    x , y ,  z = cx(t), cy(t), cz(t)
+    vx, vy, vz = fx(x, y, z), fy(x, y, z), fz(x, y, z)
+
+    ax.quiver(x, y, z, vx, vy, vz,  alpha = alpha, length = 0.3, normalize = True, color = color)
+
+    return
+
 def dot(x0, y0, color = 'black'):
     ax = plt.gca()
     ax.plot(x0, y0, color= color, marker='*')
@@ -172,7 +224,7 @@ def arrow(x0, y0, vx, vy, head = 0.3, color = 'black'):
     return ax
 
 
-def arrow3d(x0, y0, z0, vx, vy, vz, color = 'black', head = 0.3):
+def arrow3d(x0, y0, z0, vx, vy, vz, color = 'black', head = 0.0):
     ax = plt.gca(projection='3d')
     vv = np.sqrt(vx*vx + vy*vy + vz*vz)
     if (vv == 0.):
@@ -242,6 +294,49 @@ def wfsurface(funx, funy, funz, urange = xrange, vrange = xrange,
     ax.plot_wireframe(xms, yms, zms, alpha = alpha, color = color)
     ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
     return fig, ax
+
+
+
+def wfmasterlines(funx, funy, funz, urange, vrange, ui = 0, vj = 0,
+           color='b', alpha = 0.8):
+    us = np.linspace(*urange)
+    vs = np.linspace(*vrange)
+    ums, vms = np.meshgrid(us, vs)
+    xms, yms, zms = funx(ums, vms), funy(ums, vms), funz(ums, vms)
+    u0, v0 = np.ones(len(us)) * us[ui], np.ones(len(vs)) * vs[vj]
+    ax = plt.gca(projection='3d')
+    ulx = lambda u : funx(u, v0)
+    uly = lambda u : funy(u, v0)
+    ulz = lambda u : funz(u, v0)
+    line3d(ulx, uly, ulz, urange, newfig=False, color = color, alpha = alpha)
+    vlx = lambda v : funx(u0, v)
+    vly = lambda v : funy(u0, v)
+    vlz = lambda v : funz(u0, v)
+    line3d(vlx, vly, vlz, vrange, newfig=False, color = color, alpha = alpha)
+    return
+
+
+def wfaxis(funx, funy, funz, urange, vrange, ui = 0, vj = 0,
+           color='black', alpha = 0.8):
+    i, j = ui, vj
+    us = np.linspace(*urange)
+    vs = np.linspace(*vrange)
+    ums, vms = np.meshgrid(us, vs)
+    xms, yms, zms = funx(ums, vms), funy(ums, vms), funz(ums, vms)
+    x0, y0, z0 = xms[j][i], yms[j][i], zms[j][i]
+    dxj, dyj, dzj = xms[j+1][i] - xms[j][i], yms[j+1][i] - yms[j][i], zms[j+1][i] - zms[j][i]
+    dxi, dyi, dzi = xms[j][i+1] - xms[j][i], yms[j][i+1] - yms[j][i], zms[j][i+1] - zms[j][i]
+    nx =  dyi * dzj - dyj * dzi
+    ny = -dxi * dzj + dxj * dzi
+    nz =  dxi * dyj - dxj * dyi
+    mod = lambda x, y, z: np.sqrt(x*x + y*y + z*z)
+    nn = np.sqrt(mod(nx, ny, nz))
+    ax = plt.gca(projection='3d')
+    ax.quiver(x0, y0, z0, dxi, dyi, dzi, color = color, lw=2, alpha = alpha)
+    ax.quiver(x0, y0, z0, dxj, dyj, dzj, color = color, lw=2, alpha = alpha)
+    ax.quiver(x0, y0, z0,  nx/nn,  ny/nn,  nz/nn, color = color, lw=2, alpha = alpha)
+    return xms, yms, zms
+
 
 
 def wfsurface2d(xfun, yfun, urange, vrange, newfig = False,
