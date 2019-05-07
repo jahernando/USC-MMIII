@@ -21,7 +21,7 @@ cmap    = 'hot'
 xrange = (-3., 3., 100)
 trange = ( 0., 1., 100)
 
-def fun1d(fun, xrange = xrange, newfig = True):
+def fun1d(fun, xrange = xrange, newfig = True, label = ""):
     """ draw a 1d function
     parameters:
         fun   : (function)     real function
@@ -29,7 +29,9 @@ def fun1d(fun, xrange = xrange, newfig = True):
     """
     xs   = np.linspace(*xrange)
     fig = plt.figure() if newfig else plt.gcf(); ax = plt.gca()
-    ax.plot(xs, fun(xs))
+    ax.plot(xs, fun(xs), label = label)
+    if (label != ''):
+        ax.legend()
     ax.set_xlabel('$x$'); ax.set_ylabel('f(x)')
     return fig, ax
 
@@ -136,6 +138,22 @@ def quiver2d(fx, fy, xrange = xrange, yrange = xrange, newfig = False):
     c0 = ax.quiver(xms, yms, vmx, vmy, alpha=0.8)
     ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
     return fig, ax
+    return
+
+
+def quiver2d_in_line2d(fx, fy, cx, cy, trange = xrange, newfig = False,
+                        color = 'red', alpha = 0.5):
+
+    fig = plt.figure(figsize=figsize) if newfig else plt.gcf()
+    ax = fig.gca()
+
+    # Make the grid
+    t = np.linspace(*trange)
+
+    x , y  = cx(t), cy(t)
+    vx, vy = fx(x, y), fy(x, y)
+
+    ax.quiver(x, y, vx, vy, alpha = alpha, color = color)
     return
 
 
