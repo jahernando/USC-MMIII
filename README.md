@@ -5,7 +5,9 @@
 ### date  : January 2020
 
 
-This repository contains Python-Notebooks, pdfs and Python code for the lectures
+This repository contains Python-Notebooks and Python code for the lectures
 on Metodos Matemáticos III.
+
+Clich here to start your interactive session:
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jahernando/USC-MMIII/master)
