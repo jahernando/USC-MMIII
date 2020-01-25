@@ -1,0 +1,7 @@
+name: USC-MIII
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - matplotlib
+  - scipy
