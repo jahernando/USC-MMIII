@@ -14,7 +14,7 @@ from matplotlib.collections import PolyCollection
 matplotlib.style.use('ggplot')
 
 #figsize = 5, 3.8
-#figsize = 7, 4.4
+#figsize = 7, 4.4 
 figsize = 8, 6
 cmap    = 'hot'
 
@@ -253,9 +253,9 @@ def arrow3d(x0, y0, z0, vx, vy, vz, color = 'black', head = 0.0):
     return ax
 
 
-def graph_section(fun, x0, y0, vx, vy, xrange = xrange, yrange = xrange, sign = +1.):
-    xs  = np.linspace(*xrange)
-    ys  = np.linspace(*yrange)
+def graph_section(fun, x0, y0, vx, vy, length = 5., sign = +1.):
+    xs  = np.linspace(-length, length, 100)
+    ys  = np.linspace(-length, length, 100)
     xms, yms = np.meshgrid(xs, ys)
     zms = fun(xms, yms)
     dvx, dvy = xms - x0, yms - y0
