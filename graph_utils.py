@@ -70,7 +70,7 @@ def graph(fun, xrange = xrange, yrange = xrange, condition = None,
     ax = plt.gca(projection='3d')
     sf  = ax.plot_surface(xms, yms, zms, cmap=cmap, alpha = 0.8)
     if (zlim is not None): ax.set_zlim3d(*zlim)
-    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
+    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); #ax.set_aspect('equal')
     if (newfig): fig.colorbar(sf)
     return fig, ax
 
@@ -108,7 +108,7 @@ def bars3d(fun, xrange = xrange, yrange = xrange, condition = None, zlim = None,
 
     ax.bar3d(xms.ravel(), yms.ravel(), z0s.ravel(), xwidth, ywidth, zms.ravel(),
     shade=True, color = cmap)
-    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
+    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); #ax.set_aspect('equal')
 
     return fig, ax
 
@@ -124,7 +124,7 @@ def contour(fun, xrange = xrange , yrange = xrange, contours = 20, condition = N
     if (fill):
         c0 = ax.contourf(xms, yms, zms, contours, alpha=0.8, cmap=cmap)
     sf  = ax.contour(xms, yms, zms, contours, cmap=cmap)
-    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
+    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); #ax.set_aspect('equal')
     fig.colorbar(sf)
     return fig, ax
     return
@@ -136,7 +136,7 @@ def quiver2d(fx, fy, xrange = xrange, yrange = xrange, newfig = False):
     fig = plt.figure(figsize=figsize) if newfig else plt.gcf()
     ax = plt.gca()
     c0 = ax.quiver(xms, yms, vmx, vmy, alpha=0.8)
-    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
+    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); #ax.set_aspect('equal')
     return fig, ax
     return
 
@@ -265,7 +265,7 @@ def graph_section(fun, x0, y0, vx, vy, length = 5., sign = +1.):
     fig = plt.figure(figsize=(8, 3.8))
     ax = fig.add_subplot(1, 2, 1, projection='3d')
     sf = ax.plot_surface(xms, yms, zms, cmap = cmap)
-    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
+    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); #ax.set_aspect('equal')
     fig.colorbar(sf)
     ax = plt.subplot(1, 2, 2)
     ts  = np.linspace(-1.*length, length, 100)
@@ -286,7 +286,7 @@ def line2d(funx, funy, trange = trange, color = 'blue', newfig = True):
     fig = plt.figure(figsize = figsize) if newfig else plt.gcf()
     ax  = plt.gca()
     ax.plot(xs, ys, color = color)
-    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
+    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); #ax.set_aspect('equal')
     return fig, ax
 
 
@@ -297,7 +297,7 @@ def line3d(funx, funy, funz, trange = xrange,
     fig = plt.figure(figsize = figsize) if newfig else plt.gcf()
     ax  = plt.gca(projection='3d')
     ax.plot(xs, ys, zs, color = color, lw = 2, alpha = 0.8)
-    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
+    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); #ax.set_aspect('equal')
     return fig, ax
 
 
@@ -310,7 +310,7 @@ def wfsurface(funx, funy, funz, urange = xrange, vrange = xrange,
     fig = plt.figure(figsize = figsize) if newfig else plt.gcf()
     ax  = plt.gca(projection='3d')
     ax.plot_wireframe(xms, yms, zms, alpha = alpha, color = color)
-    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal')
+    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); #ax.set_aspect('equal')
     return fig, ax
 
 
@@ -373,7 +373,7 @@ def wfsurface2d(xfun, yfun, urange, vrange, newfig = False,
     yms = yms.transpose()
     for i in range(nvs):
         ax.plot(xms[i][:], yms[i][:], color = color, alpha = 0.8)
-    ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); ax.set_aspect('equal')
+    ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); #ax.set_aspect('equal')
     return fig, ax
 
 def arrow3d(x0, y0, z0, vx, vy, vz, color = 'black', head = 0.3):
@@ -398,7 +398,7 @@ def int_fscalar_line(fc, cx, cy, trange = trange, newfig = False):
     for i in range(len(xs)):
         ax.plot( (xs[i], xs[i]), (ys[i], ys[i]), (0., zs[i]), color = 'r', alpha = 0.5)
 #ax.view_init(azim=60.)
-    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal');
+    ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); #ax.set_aspect('equal');
     return
 
 def int_fvect_line(fx, fy, cx, cy, trange = trange, newfig = False,
@@ -439,7 +439,7 @@ def int_fvect_line(fx, fy, cx, cy, trange = trange, newfig = False,
         #ax.ax.plot( (0., ify), (ys[i], ys[i]), color = color, alpha = 0.4)
     #ax.
         #ax.view_init(azim=60.)
-        ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal');
+        ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); # ax.set_aspect('equal');
     else:
         ax  = plt.gca(projection='3d')
         xs, ys = xs[:-1], ys[:-1]
@@ -447,7 +447,7 @@ def int_fvect_line(fx, fy, cx, cy, trange = trange, newfig = False,
         ax.plot(xs, ys, 0.*zs, color = 'black', alpha = 0.5)
         for i in range(len(xs)):
             ax.plot( (xs[i], xs[i]), (ys[i], ys[i]), (0., zs[i]), color = 'r', alpha = 0.5)
-        ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); ax.set_aspect('equal');
+        ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); #ax.set_aspect('equal');
     return intval
 
 
