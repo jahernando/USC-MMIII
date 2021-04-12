@@ -54,7 +54,7 @@ def zfun(fun, xms, yms, condition = None, zlim = None, zzero = 0.):
     return zms
 
 def graph(fun, xrange = xrange, yrange = xrange, condition = None,
-          zlim = None, newfig = True):
+          zlim = None, newfig = True, **kargs):
     """ draws a funcion
     parameters:
         fun    : (function)    x,y function to draw
@@ -68,7 +68,7 @@ def graph(fun, xrange = xrange, yrange = xrange, condition = None,
     zms      = zfun(fun, xms, yms, condition, zlim)
     fig = plt.figure(figsize=figsize) if newfig else plt.gcf()
     ax = plt.gca(projection='3d')
-    sf  = ax.plot_surface(xms, yms, zms, cmap=cmap, alpha = 0.8)
+    sf  = ax.plot_surface(xms, yms, zms, cmap=cmap, **kargs)
     if (zlim is not None): ax.set_zlim3d(*zlim)
     ax.set_xlabel('$x$'); ax.set_ylabel('$y$'); #ax.set_aspect('equal')
     if (newfig): fig.colorbar(sf)
